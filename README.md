@@ -1,2 +1,1 @@
-# TextClassify
-文本分类
+# 文本分类
