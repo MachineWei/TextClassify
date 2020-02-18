@@ -10,7 +10,7 @@ from keras.layers import Embedding, Conv1D, GlobalMaxPooling1D
 
 
 # 读入训练数据
-td = TextData(is_seged=True)
+td = TextData()
 (x_data, y_data, z_data), (x_labels, y_labels, z_labels) = td.load_idata()
 word2id = td.word2id
 cat2id = td.cat2id
