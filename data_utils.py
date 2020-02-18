@@ -20,9 +20,9 @@ class TextData:
         return open(file, mode, encoding='utf-8', errors='ignore')
 
 
-    def cut_words(self, segment_func, sentence) -> list:
+    def cut_words(self, sentence) -> list:
         """载入分词工具"""
-        return segment_func(sentence)
+        return jieba.lcut(sentence)
 
 
     def to_local(self, input_file, out_file, input_separator='\t'):
@@ -32,7 +32,7 @@ class TextData:
             for line in in_f:
                 label, content = line.strip().split(input_separator)
                 if content:
-                    words = ' '.join(self.cut_words(jieba.lcut, content))
+                    words = ' '.join(self.cut_words(content))
                     out_f.write(label + '\t' + words+'\n')
         print('Done！')
 
@@ -61,6 +61,7 @@ class TextData:
     def build_vocab(self, train_segment_dir, vocab_dir, vocab_size=5000):
         """根据训练集构建词汇表并存储"""
         contents, labels = self.read_file(train_segment_dir)
+        labels = sorted(list(set(labels)))
         all_data = []
         for content in contents:
             all_data.extend([c.strip() for c in content.split(' ') if c.strip()!=''])
@@ -71,10 +72,11 @@ class TextData:
         # 添加一个 <PAD> 来将所有文本pad为同一长度
         words = ['<PAD>'] + list(words)
         self.open_file(vocab_dir, mode='w').write('\n'.join(words) + '\n')
-        return dict(zip(words, range(len(words)))), dict(zip(set(labels), range(len(set(labels)))))
+        return dict(zip(words, range(len(words)))), dict(zip(labels, range(len(set(labels)))))
 
 
     def local_data(self):
+        """训练集、测试集、验证集均分词写入本地"""
         self.to_local(BasePath.raw_train, BasePath.train_dir)
         self.to_local(BasePath.raw_test, BasePath.test_dir)
         self.to_local(BasePath.raw_val, BasePath.val_dir)

@@ -30,7 +30,7 @@ y_labels = to_categorical(y_labels, num_classes=num_classes)
 model = Sequential()
 model.add(Embedding(max_words, TCNNConfig.embedding_dims,
                     input_length=MAX_LEN))
-model.add(Dropout(TCNNConfig.dropout))
+# model.add(Dropout(TCNNConfig.dropout))
 
 model.add(Conv1D(TCNNConfig.filters, TCNNConfig.kernel_size, padding='valid',
                  activation='relu', strides=1))
@@ -54,10 +54,10 @@ history = model.fit(x_data, x_labels,
           validation_data=(y_data, y_labels))
 
 # 模型保存
-model.save(TCNNConfig.name)
+model.save(TCNNConfig.save_path)
 
 # 模型加载
-model = load_model(TCNNConfig.name)
+model = load_model(TCNNConfig.save_path)
 
 # 模型评估
 test_loss, test_acc = model.evaluate(y_data, y_labels)

@@ -2,26 +2,27 @@
 
 import os
 
-BaseDir = r'E:\MySVN\Github\TextClassify\data'
-ModelDirt = r'E:\MySVN\Github\TextClassify\models'
+cur_path = os.path.abspath(os.path.dirname('__file__'))
+DataDir = os.path.join(cur_path, 'data')
+ModelDirt = os.path.join(cur_path, 'models')
 
 class BasePath:
-    base_dir = os.path.join(BaseDir,'raw_data')
+    base_dir = os.path.join(DataDir,'raw_data')
     raw_train = os.path.join(base_dir, 'cnews.train.txt')
     raw_test = os.path.join(base_dir, 'cnews.test.txt')
     raw_val = os.path.join(base_dir, 'cnews.val.txt')
     
-    segment_dir = os.path.join(BaseDir,'segment_data')
+    segment_dir = os.path.join(DataDir,'segment_data')
     train_dir = os.path.join(segment_dir, 'train.txt')
     test_dir = os.path.join(segment_dir, 'test.txt')
     val_dir = os.path.join(segment_dir, 'val.txt')
     vocab_dir = os.path.join(segment_dir, 'vocab.txt')
     
-    models_dir = os.path.join(BaseDir, 'models')
+    models_dir = os.path.join(DataDir, 'models')
 
 
 class TCNNConfig(BasePath):
-    name = 'keras_cnn.h5'
+    model_name = 'keras_cnn.h5'
     max_len = 500
     batch_size = 128
     embedding_dims = 256
@@ -30,15 +31,7 @@ class TCNNConfig(BasePath):
     hidden_dims = 64
     epochs = 5
     dropout = 0.5
-    save_path = os.path.join(ModelDirt, name)
-
-
-
-
-
-
-
-
+    save_path = os.path.join(ModelDirt, model_name)
 
 
 
