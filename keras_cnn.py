@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+'''
+cnn新闻文本分类
+'''
 
 from data_utils import TextData
 from conf import TCNNConfig
@@ -14,23 +17,20 @@ td = TextData()
 (x_data, y_data, z_data), (x_labels, y_labels, z_labels) = td.load_idata()
 word2id = td.word2id
 cat2id = td.cat2id
+num_classes=len(set(x_labels))
+vocab_size = len(word2id)
 
 # 将每条文本固定为相同长度
-MAX_LEN = TCNNConfig.max_len
-num_classes=len(set(x_labels))
-max_words = len(word2id)
-
-x_data = pad_sequences(x_data, MAX_LEN)   
+x_data = pad_sequences(x_data, TCNNConfig.seq_length)   
 x_labels = to_categorical(x_labels, num_classes=num_classes)
 
-y_data = pad_sequences(y_data, MAX_LEN)   
+y_data = pad_sequences(y_data, TCNNConfig.seq_length)   
 y_labels = to_categorical(y_labels, num_classes=num_classes)
 
 # 构建模型
 model = Sequential()
-model.add(Embedding(max_words, TCNNConfig.embedding_dims,
-                    input_length=MAX_LEN))
-# model.add(Dropout(TCNNConfig.dropout))
+model.add(Embedding(vocab_size, TCNNConfig.embedding_dims,
+                    input_length=TCNNConfig.seq_length))
 
 model.add(Conv1D(TCNNConfig.filters, TCNNConfig.kernel_size, padding='valid',
                  activation='relu', strides=1))

@@ -23,17 +23,33 @@ class BasePath:
 
 class TCNNConfig(BasePath):
     model_name = 'keras_cnn.h5'
-    max_len = 500
+    
+    seq_length = 500
+    vocab_size = 5000
     batch_size = 128
-    embedding_dims = 256
+    embedding_dims = 64
     filters = 128
     kernel_size = 8
     hidden_dims = 64
+    
     epochs = 5
     dropout = 0.5
+    
     save_path = os.path.join(ModelDirt, model_name)
 
 
+class TRNNConfig(BasePath):
+    model_name = 'keras_rnn.h5'
+
+    seq_length = 500
+    vocab_size = 5000
+    batch_size = 128
+    hidden_dims = 64
+
+    epochs = 5
+    dropout = 0.5
+
+    save_path = os.path.join(ModelDirt, model_name)
 
 
 
