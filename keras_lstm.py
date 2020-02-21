@@ -11,6 +11,7 @@ from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding, LSTM
 from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
 
 # 读入训练数据
 td = TextData(is_seged=True)
@@ -47,7 +48,9 @@ model.summary()
 # 训练模型
 history = model.fit(x_data, x_labels,
           batch_size=TRNNConfig.batch_size, epochs=TRNNConfig.epochs,
-          validation_data=(y_data, y_labels))
+          validation_data=(y_data, y_labels),
+          callbacks=[EarlyStopping(monitor='val_loss',min_delta=0.0001)] ## 当val-loss不再提升时停止训练
+          )
 
 # 模型保存
 model.save(TRNNConfig.save_path)
