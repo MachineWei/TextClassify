@@ -17,6 +17,7 @@ class BasePath:
     test_dir = os.path.join(segment_dir, 'test.txt')
     val_dir = os.path.join(segment_dir, 'val.txt')
     vocab_dir = os.path.join(segment_dir, 'vocab.txt')
+    stop_words = os.path.join(segment_dir, 'stop_words.txt')
     
     models_dir = os.path.join(DataDir, 'models')
 

@@ -13,7 +13,7 @@ from keras.layers import Embedding, LSTM
 from keras.optimizers import Adam
 
 # 读入训练数据
-td = TextData()
+td = TextData(is_seged=True)
 (x_data, y_data, z_data), (x_labels, y_labels, z_labels) = td.load_idata()
 word2id = td.word2id
 cat2id = td.cat2id
@@ -32,8 +32,11 @@ model = Sequential()
 model.add(Embedding(vocab_size, TRNNConfig.hidden_dims,
                     input_length=TRNNConfig.seq_length))
 model.add(LSTM(TRNNConfig.hidden_dims))
-model.add(Dense(num_classes))
-model.add(Activation('softmax'))
+
+model.add(Dense(TRNNConfig.hidden_dims, activation='relu'))
+model.add(Dropout(TRNNConfig.dropout))
+
+model.add(Dense(num_classes, activation='softmax'))
 
 adam = Adam(lr=TRNNConfig.learn_rate)
 model.compile(loss='categorical_crossentropy',
@@ -57,7 +60,6 @@ test_loss, test_acc = model.evaluate(y_data, y_labels)
 
 # 模型预测
 y_pred = model.predict_classes(y_data)
-
 
 # 结果可视化
 import matplotlib.pyplot as plt

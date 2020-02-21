@@ -36,12 +36,10 @@ model.add(Conv1D(TCNNConfig.filters, TCNNConfig.kernel_size, padding='valid',
                  activation='relu', strides=1))
 model.add(GlobalMaxPooling1D())
 
-model.add(Dense(TCNNConfig.hidden_dims))
+model.add(Dense(TCNNConfig.hidden_dims, activation='relu'))
 model.add(Dropout(TCNNConfig.dropout))
-model.add(Activation('relu'))
 
-model.add(Dense(num_classes))
-model.add(Activation('softmax'))
+model.add(Dense(num_classes, activation='softmax'))
 
 adam = Adam(lr=TCNNConfig.learn_rate)
 model.compile(loss='categorical_crossentropy',

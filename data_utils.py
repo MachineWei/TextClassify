@@ -11,11 +11,12 @@ class TextData:
     
     def __init__(self, is_seged=False):
         self.is_seged = is_seged
+        self.stop_words = self.open_file(BasePath.stop_words).read().strip().split('\n')
         if not self.is_seged:
             self.local_data()
         self.word2id, self.cat2id = self.build_vocab(BasePath.train_dir, BasePath.vocab_dir)
-
-
+        
+    
     def open_file(self, file, mode='r'):
         return open(file, mode, encoding='utf-8', errors='ignore')
 
@@ -27,14 +28,13 @@ class TextData:
 
     def to_local(self, input_file, out_file, input_separator='\t'):
         """读取文件数据，并将分词结果写入本地文件"""
-        print('将分词结果写入本地ing')
         with self.open_file(input_file) as in_f, self.open_file(out_file,'w') as out_f:
             for line in in_f:
                 label, content = line.strip().split(input_separator)
                 if content:
-                    words = ' '.join(self.cut_words(content))
+                    content = re.sub(u"[%s]" % punctuation, " ", content)  # 删除所有中文标点
+                    words = ' '.join(self.remove_stopwords(self.cut_words(content)))
                     out_f.write(label + '\t' + words+'\n')
-        print('Done！')
 
 
     def read_file(self, input_file, input_separator='\t'):
@@ -52,10 +52,9 @@ class TextData:
         return contents, labels
 
 
-    def remove_stopwords(self, string):
-        """删除停用词（目前这里仅去标点）"""
-        string = re.sub(u"[%s]" % punctuation, " ", string)
-        return string.strip()
+    def remove_stopwords(self, words):
+        """删除停用词"""
+        return [word for word in words if word not in self.stop_words]
     
     
     def build_vocab(self, train_segment_dir, vocab_dir, vocab_size=5000):
@@ -76,11 +75,12 @@ class TextData:
 
 
     def local_data(self):
-        """训练集、测试集、验证集均分词写入本地"""
+        """训练集、测试集、验证集均分词并写入本地"""
+        print('将分词结果写入本地ing')        
         self.to_local(BasePath.raw_train, BasePath.train_dir)
         self.to_local(BasePath.raw_test, BasePath.test_dir)
         self.to_local(BasePath.raw_val, BasePath.val_dir)
-
+        print('Done！')
 
     def load_data(self):
         """读取文件（已分词）"""
