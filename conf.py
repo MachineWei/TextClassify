@@ -34,6 +34,7 @@ class TCNNConfig(BasePath):
     
     epochs = 5
     dropout = 0.5
+    learn_rate = 1e-3
     
     save_path = os.path.join(ModelDirt, model_name)
 
@@ -48,6 +49,7 @@ class TRNNConfig(BasePath):
 
     epochs = 5
     dropout = 0.5
+    learn_rate = 1e-3
 
     save_path = os.path.join(ModelDirt, model_name)
 

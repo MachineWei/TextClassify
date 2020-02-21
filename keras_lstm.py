@@ -10,7 +10,7 @@ from keras.utils import to_categorical
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding, LSTM
-
+from keras.optimizers import Adam
 
 # 读入训练数据
 td = TextData()
@@ -35,8 +35,9 @@ model.add(LSTM(TRNNConfig.hidden_dims))
 model.add(Dense(num_classes))
 model.add(Activation('softmax'))
 
+adam = Adam(lr=TRNNConfig.learn_rate)
 model.compile(loss='categorical_crossentropy',
-              optimizer='adam', metrics=['accuracy'])
+              optimizer=adam, metrics=['accuracy'])
 
 model.summary()
 
