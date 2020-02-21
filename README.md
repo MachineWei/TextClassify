@@ -25,7 +25,7 @@ print(classification_report(y_labels, y_pre))
 weighted avg       0.93      0.93      0.93     10000
 ```
 ## NNS
-下面试试神经网络，一般遵循“窄而深”的原则搭建网络，这里举的例子均较为简单，简单提供思路使用，且无论前面的贝叶斯还是这里的神经网络，均未做停用词处理。可根据个人需求定制细节。
+下面试试神经网络，一般遵循“窄而深”的原则搭建网络，这里举的例子均较为简单，简单提供思路使用，可根据个人需求定制细节。注意无论前面的贝叶斯还是这里的神经网络，均未做停用词处理。
 ### CNN
 测试集准确率95.16%  
 ![img](https://github.com/MachineWei/TextClassify/blob/master/images/textcnn.png)
