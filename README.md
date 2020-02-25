@@ -76,7 +76,14 @@ _________________________________________________________________
 测试集准确率84.92%  
 ![img](https://github.com/MachineWei/TextClassify/blob/master/images/textlstm.png)
 
-
-
-
+### Word2vec + LSTM
+模型结构与LSTM相同，仅在embedding层嵌入词向量模型
+```
+Embedding(vocab_size, TRNNConfig.hidden_dims,
+                    weights=[embedding_matrix],   # 嵌入词向量
+                    input_length=TRNNConfig.seq_length,
+                    trainable=True)
+```
+测试集准确率88.48%  
+![img](https://github.com/MachineWei/TextClassify/blob/master/images/w2vlstm.png)
 
