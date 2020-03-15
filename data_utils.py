@@ -2,17 +2,25 @@
 
 import re
 import jieba
-from zhon.hanzi import punctuation
+import random
+import numpy as np
 from collections import Counter
 from conf import BasePath
 
 
 class TextData:
     
-    def __init__(self, is_seged=False):
-        self.is_seged = is_seged
+    re_han = re.compile("([\u4E00-\u9FD5]+)")
+    
+    def __init__(self, cut=False, sampling_rate = 1):
+        '''
+        cut: 是否需要进行分词（等于True时覆盖sampling_rate）
+        sampling_rate: 选取部分数据进行训练、测试、验证（数据量较大时） 
+        '''
+        self.cut = cut
+        self.sampling_rate = sampling_rate
         self.stop_words = self.open_file(BasePath.stop_words).read().strip().split('\n')
-        if not self.is_seged:
+        if not self.cut:
             self.local_data()
         self.word2id, self.cat2id = self.build_vocab(BasePath.train_dir, BasePath.vocab_dir)
         
@@ -21,24 +29,36 @@ class TextData:
         return open(file, mode, encoding='utf-8', errors='ignore')
 
 
-    def cut_words(self, sentence) -> list:
+    def cut_words(self, sentence : str) -> list:
         """载入分词工具"""
         return jieba.lcut(sentence)
 
 
+    def remove_stopwords(self, words):
+        """删除停用词"""
+        return [word for word in words if word not in self.stop_words]
+
+
+    def text_preprogress(self, content):
+        """文本预处理"""
+        sentences = self.re_han.findall(content)
+        ch_words = [' '.join(self.remove_stopwords(self.cut_words(sentence))) for sentence in sentences]
+        return ' '.join(ch_words)
+
+
     def to_local(self, input_file, out_file, input_separator='\t'):
-        """读取文件数据，并将分词结果写入本地文件"""
+        """文本预处理，并写入本地"""
         with self.open_file(input_file) as in_f, self.open_file(out_file,'w') as out_f:
             for line in in_f:
-                label, content = line.strip().split(input_separator)
-                if content:
-                    content = re.sub(u"[%s]" % punctuation, " ", content)  # 删除所有中文标点
-                    words = ' '.join(self.remove_stopwords(self.cut_words(content)))
-                    out_f.write(label + '\t' + words+'\n')
+                if random.random() <= self.sampling_rate:
+                    label, content = line.strip().split(input_separator)
+                    if content:
+                        words = self.text_preprogress(content)
+                        out_f.write(label + '\t' + words+'\n')
 
 
     def read_file(self, input_file, input_separator='\t'):
-        """读取文件数据"""
+        """读取处理后的本地数据"""
         contents, labels = [], []
         with self.open_file(input_file) as in_f:
             for line in in_f:
@@ -50,11 +70,6 @@ class TextData:
                 except:
                     pass
         return contents, labels
-
-
-    def remove_stopwords(self, words):
-        """删除停用词"""
-        return [word for word in words if word not in self.stop_words]
     
     
     def build_vocab(self, train_segment_dir, vocab_dir, vocab_size=5000):
@@ -74,13 +89,29 @@ class TextData:
         return dict(zip(words, range(len(words)))), dict(zip(labels, range(len(set(labels)))))
 
 
+    def batch_iter(self, x, y, batch_size=64):
+        """生成批次数据"""
+        data_len = len(x)
+        num_batch = int((data_len - 1) / batch_size) + 1
+    
+        indices = np.random.permutation(np.arange(data_len))
+        x_shuffle = x[indices]
+        y_shuffle = y[indices]
+    
+        for i in range(num_batch):
+            start_id = i * batch_size
+            end_id = min((i + 1) * batch_size, data_len)
+            yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
+
+
     def local_data(self):
         """训练集、测试集、验证集均分词并写入本地"""
-        print('将分词结果写入本地ing')        
+        print('将分词结果写入本地ing')
         self.to_local(BasePath.raw_train, BasePath.train_dir)
         self.to_local(BasePath.raw_test, BasePath.test_dir)
         self.to_local(BasePath.raw_val, BasePath.val_dir)
         print('Done！')
+
 
     def load_data(self):
         """读取文件（已分词）"""
@@ -106,6 +137,21 @@ class TextData:
         z_data, z_labels = self.to_id(val_data, val_labels)
         return (x_data, y_data, z_data), (x_labels, y_labels, z_labels)
         
+
+# 载入词向量模型
+def create_embedding_matrix(filepath, word_index, embedding_dim):
+    vocab_size = len(word_index)
+    embedding_matrix = np.zeros((vocab_size, embedding_dim))
+
+    with open(filepath, encoding='utf-8') as f:
+        for line in f:
+            word, *vector = line.split()
+            if word in word_index:
+                idx = word_index[word]
+                embedding_matrix[idx] = np.array(vector, dtype=np.float32)[:embedding_dim]
+    return embedding_matrix
+
+
         
         
-        
+    

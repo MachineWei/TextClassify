@@ -3,87 +3,42 @@
 新闻分类数据集  
 包含{'体育': 0, '娱乐': 1, '家居': 2, '房产': 3, '教育': 4, '时尚': 5, '时政': 6, '游戏': 7, '科技': 8, '财经': 9}十个类别，其中train文件50000条，val5000条，test10000条。  
 
-## Naive Bayes
-对于文本分类，本人不习惯一上来就搭个网络试试，先来个传统文本分类算法：
-```python  
-print(classification_report(y_labels, y_pre))
-              precision    recall  f1-score   support
+## 算法实现
+- bayes
+- rnn
+- cnn
+- w2v+lstm
 
-          体育       1.00      0.99      0.99      1000
-          娱乐       0.93      0.98      0.96      1000
-          家居       0.93      0.74      0.83      1000
-          房产       0.81      0.86      0.83      1000
-          教育       0.97      0.91      0.94      1000
-          时尚       0.95      0.97      0.96      1000
-          时政       0.91      0.94      0.92      1000
-          游戏       0.95      0.97      0.96      1000
-          科技       0.93      0.95      0.94      1000
-          财经       0.93      0.99      0.96      1000
+## 代码说明
+```
+TextClassify/  
+|-- data/                    # 数据文件
+|   |-- raw_data             # 原始数据
+|   |   |-- cnews.test.txt
+|   |   |-- cnews.train.txt
+|   |   |-- cnews.val.txt
+|   |   |-- readme.md
+|   |-- segment_data         # 经过处理后的数据（分词）
+|   |   |-- test.txt
+|   |   |-- train.txt
+|   |   |-- val.txt
+|   |   |-- vocab.txt
+|   |   |-- stopwords.txt
+|-- model/                   # 存储训练结果文件（持久化模型、结构图、混淆矩阵、损失曲线）
+|   |-- simple_cnn/  
+|   |   |-- confusion_matrix.png
+|   |   |-- loss.png
+|   |   |-- simple_cnn.png  
+|   |   |-- simple_cnn.h5
+|-- pretrain.model           # 词向量模型（根据需要去别处下载）
+|-- conf.py                  # 模型配置文件
+|-- data_utils.py            # 数据预处理模块
+|-- pic.py                   # 作图
+|-- SimpleCNN.py             # 基础版cnn
+|-- SimpleRNN.py             # 基础版rnn
+|-- SklearnBayes.py          # 贝叶斯分类
+|-- TextCNN.py               # textcnn
+|-- Word2VecLSTM.py          # word2vec + lstm
+```
 
-    accuracy                           0.93     10000
-   macro avg       0.93      0.93      0.93     10000
-weighted avg       0.93      0.93      0.93     10000
-```
-## NNS
-下面试试神经网络，一般遵循“窄而深”的原则搭建网络，这里举的例子均较为简单，简单提供思路使用，可根据个人需求定制细节。注意无论前面的贝叶斯还是这里的神经网络，均未做停用词处理。
-### TextCNN
-```
-Model: "sequential_1"
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-embedding_1 (Embedding)      (None, 500, 64)           320000    
-_________________________________________________________________
-conv1d_1 (Conv1D)            (None, 493, 128)          65664     
-_________________________________________________________________
-global_max_pooling1d_1 (Glob (None, 128)               0         
-_________________________________________________________________
-dense_1 (Dense)              (None, 64)                8256      
-_________________________________________________________________
-dropout_1 (Dropout)          (None, 64)                0         
-_________________________________________________________________
-dense_2 (Dense)              (None, 10)                650       
-=================================================================
-Total params: 394,570
-Trainable params: 394,570
-Non-trainable params: 0
-_________________________________________________________________
-```
-测试集准确率95.16%  
-![img](https://github.com/MachineWei/TextClassify/blob/master/images/textcnn.png)
-### TextLSTM
-模型：
-```
-Model: "sequential_1"
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-embedding_1 (Embedding)      (None, 500, 64)           320000    
-_________________________________________________________________
-lstm_1 (LSTM)                (None, 64)                33024     
-_________________________________________________________________
-dense_1 (Dense)              (None, 64)                4160      
-_________________________________________________________________
-dropout_1 (Dropout)          (None, 64)                0         
-_________________________________________________________________
-dense_2 (Dense)              (None, 10)                650       
-=================================================================
-Total params: 357,834
-Trainable params: 357,834
-Non-trainable params: 0
-_________________________________________________________________
-```
-测试集准确率84.92%  
-![img](https://github.com/MachineWei/TextClassify/blob/master/images/textlstm.png)
-
-### Word2vec + LSTM
-模型结构与LSTM相同，仅在embedding层嵌入词向量模型
-```
-Embedding(vocab_size, TRNNConfig.hidden_dims,
-                    weights=[embedding_matrix],   # 嵌入词向量
-                    input_length=TRNNConfig.seq_length,
-                    trainable=True)
-```
-测试集准确率88.48%  
-![img](https://github.com/MachineWei/TextClassify/blob/master/images/w2vlstm.png)
 
