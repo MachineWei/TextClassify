@@ -4,9 +4,8 @@ TextCNN新闻文本分类
 '''
 
 import numpy as np
-from data_utils import TextData
-from conf import TCNNConfig
-from pic import pic_model
+from data import TextData
+from public import TCNNConfig, plt_model
 from keras import Input
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical, plot_model
@@ -59,7 +58,7 @@ def text_cnn(CNNConfig):
     
     model.summary()
     
-    plot_model(model, to_file=TCNNConfig.img_path, show_shapes=True, show_layer_names=False)
+    plot_model(model, to_file='./models/text_cnn/text_cnn.png', show_shapes=True, show_layer_names=False)
     
     model.summary()
     
@@ -67,6 +66,7 @@ def text_cnn(CNNConfig):
     
 
 model = text_cnn(TCNNConfig)
+
 # 训练模型
 history = model.fit(x_data, x_labels,
           batch_size=TCNNConfig.batch_size, epochs=TCNNConfig.epochs,
@@ -80,12 +80,13 @@ y_pred = model.predict(y_data)
 y_pred = np.argmax(y_pred, axis=1)
 
 # 结果绘图至本地
-pic_model(history,  y_labels, y_pred, plot_img_path=TCNNConfig.save_path)
+plt_model(history,  y_labels, y_pred, plot_img_path='./models/text_cnn')
 
 
 ## 模型保存
-#model.save(CNNConfig.model_path)
+#save_path = './models/text_cnn/text_cnn.h5'
+#model.save(save_path)
 ## 模型加载
-#model = load_model(CNNConfig.save_path)
+#model = load_model(save_path)
 
 

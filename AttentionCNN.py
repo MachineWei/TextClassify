@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
-SimpleCnn新闻文本分类
-'''
+"""
+Attention+CNN
+"""
 
 from data import TextData
-from public import SimpleCNNConfig, plt_model
+from public import AttentionCNNConfig, plt_model
+from Attention import Attention, Position_Embedding, Self_Attention
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical, plot_model
 from keras.models import Sequential, load_model
@@ -21,27 +22,27 @@ num_classes=len(set(x_labels))
 vocab_size = len(word2id)
 
 # 将每条文本固定为相同长度
-x_data = pad_sequences(x_data, SimpleCNNConfig.seq_length)   
+x_data = pad_sequences(x_data, AttentionCNNConfig.seq_length)   
 x_labels = to_categorical(x_labels, num_classes=num_classes)
 
-y_data = pad_sequences(y_data, SimpleCNNConfig.seq_length)   
+y_data = pad_sequences(y_data, AttentionCNNConfig.seq_length)   
 y_labels = to_categorical(y_labels, num_classes=num_classes)
 
 
-def simple_cnn(CNNConfig):
+def attention_cnn(CNNConfig):
     # 构建模型
-    model = Sequential()
-    model.add(Embedding(vocab_size, CNNConfig.embedding_dims,
-                        input_length=CNNConfig.seq_length))
+    x_input = Input(shape=(CNNConfig.seq_length,), dtype='int32')
+    embeddings = Embedding(input_dim=vocab_size, 
+                      output_dim=CNNConfig.embedding_dims, 
+                      input_length=CNNConfig.seq_length)(x_input)
+    O_seq = Self_Attention(CNNConfig.embedding_dims)(embeddings)
+    # O_seq = Conv1D(CNNConfig.filters, CNNConfig.kernel_size, padding='valid',
+    #                   activation='relu', strides=1)(O_seq)
+    O_seq = GlobalAveragePooling1D()(O_seq)
+    O_seq = Dropout(CNNConfig.dropout)(O_seq)
+    outputs = Dense(num_classes, activation='softmax')(O_seq)
     
-    model.add(Conv1D(CNNConfig.filters, CNNConfig.kernel_size, padding='valid',
-                     activation='relu', strides=1))
-    model.add(GlobalMaxPooling1D())
-    
-    model.add(Dense(CNNConfig.hidden_dims, activation='relu'))
-    model.add(Dropout(CNNConfig.dropout))
-    
-    model.add(Dense(num_classes, activation='softmax'))
+    model = Model(inputs=x_input, outputs=outputs)
     
     adam = Adam(lr=CNNConfig.learn_rate)
     model.compile(loss='categorical_crossentropy',
@@ -49,15 +50,15 @@ def simple_cnn(CNNConfig):
     
     model.summary()
     
-    plot_model(model, to_file='./models/simple_cnn/simple_cnn.png', show_shapes=True, show_layer_names=False)
+    # plot_model(model, to_file='./models/attention_cnn/attention_cnn.png', show_shapes=True, show_layer_names=False)
     
     return model
 
 
-model = simple_cnn(SimpleCNNConfig)
+model = attention_cnn(AttentionCNNConfig)
 # 训练模型
 history = model.fit(x_data, x_labels,
-          batch_size=SimpleCNNConfig.batch_size, epochs=SimpleCNNConfig.epochs,
+          batch_size=AttentionCNNConfig.batch_size, epochs=AttentionCNNConfig.epochs,
           validation_data=(y_data, y_labels))
 
 # 模型评估
@@ -67,7 +68,7 @@ test_loss, test_acc = model.evaluate(y_data, y_labels)
 y_pred = model.predict_classes(y_data)
 
 # 结果绘图至本地
-plt_model(history,  y_labels, y_pred, plot_img_path='./models/simple_cnn')
+plt_model(history,  y_labels, y_pred, plot_img_path='./models/attention_cnn')
 
 
 ## 模型保存
@@ -75,5 +76,3 @@ plt_model(history,  y_labels, y_pred, plot_img_path='./models/simple_cnn')
 #model.save(save_path)
 ## 模型加载
 #model = load_model(save_path)
-
-

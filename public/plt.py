@@ -9,7 +9,8 @@ import seaborn as sns
 import numpy as np
 from sklearn.metrics import confusion_matrix
 
-def pic_model(history, y_labels, y_pred, plot_img_path=None):
+
+def plt_model(history, y_labels, y_pred, plot_img_path=None):
     # 混淆矩阵
     y_labels_ = np.argmax(y_labels, axis=1)
     con_mat = confusion_matrix(y_labels_, y_pred)
@@ -29,7 +30,7 @@ def pic_model(history, y_labels, y_pred, plot_img_path=None):
     plt.title("model loss")
     plt.ylabel("loss")
     plt.xlabel("epoch")
-    plt.legend(["train","test"],loc="upper left")
+    plt.legend(["train", "test"], loc="upper left")
     if plot_img_path:
         plt.savefig(os.path.join(plot_img_path, 'loss.png'), dpi=200)    
     plt.show()
