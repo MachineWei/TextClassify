@@ -8,37 +8,27 @@
 - rnn
 - cnn
 - w2v+lstm
+- attenton+cnn
 
 ## 代码说明
 ```
 TextClassify/  
 |-- data/                    # 数据文件
 |   |-- raw_data             # 原始数据
-|   |   |-- cnews.test.txt
-|   |   |-- cnews.train.txt
-|   |   |-- cnews.val.txt
-|   |   |-- readme.md
+|   |   |-- data_utils.py    # 文件预处理
 |   |-- segment_data         # 经过处理后的数据（分词）
-|   |   |-- test.txt
-|   |   |-- train.txt
-|   |   |-- val.txt
-|   |   |-- vocab.txt
-|   |   |-- stopwords.txt
 |-- model/                   # 存储训练结果文件（持久化模型、结构图、混淆矩阵、损失曲线）
-|   |-- simple_cnn/  
-|   |   |-- confusion_matrix.png
-|   |   |-- loss.png
-|   |   |-- simple_cnn.png  
-|   |   |-- simple_cnn.h5
+|-- public/                  
+|   |   |-- conf.py          # 分类模型配置文件
+|   |   |-- plt.py           # 作图
 |-- pretrain.model           # 词向量模型（根据需要去别处下载）
-|-- conf.py                  # 模型配置文件
-|-- data_utils.py            # 数据预处理模块
-|-- pic.py                   # 作图
+|-- Attention.py             # attention模块
 |-- SimpleCNN.py             # 基础版cnn
 |-- SimpleRNN.py             # 基础版rnn
+|-- BI-LSTM.py               # bi-lstm + word2vec
 |-- SklearnBayes.py          # 贝叶斯分类
 |-- TextCNN.py               # textcnn
-|-- Word2VecLSTM.py          # word2vec + lstm
+|-- AttentionCNN.py          # attention＋cnn
 ```
 
 
