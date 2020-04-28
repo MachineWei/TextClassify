@@ -5,7 +5,7 @@ word2vec + BILSTM
 
 from data import TextData, create_embedding_matrix
 from public import SimpleRNNConfig, plt_model
-from keras.utils import to_categorical
+from keras.utils import to_categorical, plot_model
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
@@ -69,7 +69,7 @@ test_loss, test_acc = model.evaluate(y_data, y_labels)
 y_pred = model.predict_classes(y_data)
 
 # 结果绘图至本地
-pic_model(history,  y_labels, y_pred, plot_img_path='./models/bilstm')
+plt_model(history,  y_labels, y_pred, plot_img_path='./models/bilstm')
 
 ## 模型保存
 #save_path = './models/bilstm/w2v_bilstm.h5'

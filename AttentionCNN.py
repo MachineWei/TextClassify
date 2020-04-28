@@ -5,12 +5,13 @@ Attention+CNN
 
 from data import TextData
 from public import AttentionCNNConfig, plt_model
-from Attention import Attention, Position_Embedding, Self_Attention
+from Attention import Self_Attention
+from keras import Input
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import to_categorical, plot_model
-from keras.models import Sequential, load_model
+from keras.models import load_model, Model
 from keras.layers import Dense, Dropout
-from keras.layers import Embedding, Conv1D, GlobalMaxPooling1D
+from keras.layers import Embedding, GlobalAveragePooling1D
 from keras.optimizers import Adam
 
 # 读入训练数据
