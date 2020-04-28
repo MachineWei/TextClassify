@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-from .data_utils import create_embedding_matrix, TextData
+from .data_utils import create_embedding_matrix, TextData, data_generator
 

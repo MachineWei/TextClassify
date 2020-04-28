@@ -55,5 +55,21 @@ class AttentionCNNConfig:
     learn_rate = 1e-3
 
 
+class BertConfig:
+    # 超参数
+    seq_length = 500
+    batch_size = 32
+    droupout = 0.5
+    learn_rate = 1e-5
+    epochs = 5
+    
+    # 预训练模型目录
+    config_path = r"./public/pre_bert_model/chinese_L-12_H-768_A-12/bert_config.json"
+    checkpoint_path = r"./public/pre_bert_model/chinese_L-12_H-768_A-12/bert_model.ckpt"
+    dict_path = r"./public/pre_bert_model/chinese_L-12_H-768_A-12/vocab.txt"
+    
+
+
+
 
 
