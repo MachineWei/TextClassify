@@ -9,6 +9,7 @@
 - cnn
 - w2v+lstm
 - attenton+cnn
+- bert
 
 ## 代码说明
 ```
@@ -29,6 +30,7 @@ TextClassify/
 |-- SklearnBayes.py          # 贝叶斯分类
 |-- TextCNN.py               # textcnn
 |-- AttentionCNN.py          # attention＋cnn
+|-- Bert.py                  # bert
 ```
 
 
