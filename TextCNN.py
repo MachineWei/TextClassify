@@ -73,7 +73,7 @@ history = model.fit(x_data, x_labels,
           validation_data=(y_data, y_labels))
 
 # 模型评估
-test_loss, test_acc = model.evaluate(y_data, y_labels)
+test_loss, test_acc = model.evaluate(z_data, z_labels)
 
 # 模型预测
 y_pred = model.predict(y_data)

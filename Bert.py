@@ -16,7 +16,6 @@ from keras.utils import to_categorical
 
 # 读入训练数据
 td = TextData()
-# 这里x_data, y_data, z_data应为原始数据，未做分词处理
 (x_data, y_data, z_data), (x_labels, y_labels, z_labels) = td.load_data()
 word2id = td.word2id
 cat2id = td.cat2id
@@ -25,13 +24,14 @@ vocab_size = len(word2id)
 
 x_labels = [cat2id[i] for i in x_labels]
 y_labels = [cat2id[i] for i in y_labels]
+z_labels = [cat2id[i] for i in z_labels]
 x_labels = to_categorical(x_labels, num_classes=num_classes)
 y_labels = to_categorical(y_labels, num_classes=num_classes)
-
+z_labels = to_categorical(z_labels, num_classes=num_classes)
 # 数据格式转换成模型需要的输入格式
-train_data = [np.array([x_data[i], x_labels[i]]) for i in range(len(x_labels))]
-valid_data = [np.array([y_data[i], y_labels[i]]) for i in range(len(y_labels))]
-
+train_data = [np.array([x_data[i].replace(' ',''), x_labels[i]]) for i in range(len(x_labels))]
+valid_data = [np.array([y_data[i].replace(' ',''), y_labels[i]]) for i in range(len(y_labels))]
+test_data = [np.array([z_data[i].replace(' ',''), z_labels[i]]) for i in range(len(z_labels))]
 # 读取字典
 token_dict = load_vocabulary(BertConfig.dict_path)
 
@@ -86,6 +86,10 @@ model.fit_generator(
     validation_steps=len(valid_D)
 )
 
+# 模型预测
+test_D = data_generator(test_data,  BertConfig.seq_length, BertConfig.batch_size, tokenizer)
+test_model_pred = model.predict_generator(test_D.__iter__(), steps=len(test_D), verbose=1)
+test_pred = [np.argmax(x) for x in test_model_pred]
 
 
 
