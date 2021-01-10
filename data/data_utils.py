@@ -6,6 +6,7 @@ import random
 import numpy as np
 from collections import Counter
 
+
 class DataPath:
     raw_train = './data/raw_data/cnews.train.txt'
     raw_test = './data/raw_data/cnews.test.txt'
@@ -14,17 +15,17 @@ class DataPath:
     train_dir = './data/segment_data/train.txt'
     test_dir = './data/segment_data/test.txt'
     val_dir = './data/segment_data/val.txt'
-    vocab_dir = './data/segment_data/vocab.txt'
-    stop_words = './data/segment_data/stop_words.txt'
+    vocab_dir = './ckpt/vocab.txt'
+    stop_words = './ckpt/stop_words.txt'
 
 
-class TextData:
+class LoadData:
     
     re_han = re.compile("([\u4E00-\u9FD5]+)")
     
     def __init__(self, cut=False, sampling_rate=1):
         """
-        :param cut: 是否需要进行分词（等于True时覆盖sampling_rate）
+        :param cut: 是否需要进行分词（等于True时sampling_rate失效）
         :param sampling_rate: sampling_rate: 只选取部分数据进行训练、测试、验证（数据量较大时）
         """
         self.cut = cut
@@ -135,64 +136,3 @@ class TextData:
         z_data, z_labels = self.to_id(val_data, val_labels)
         return (x_data, y_data, z_data), (x_labels, y_labels, z_labels)
 
-
-# 载入词向量模型
-def create_embedding_matrix(filepath, word_index, embedding_dim):
-    vocab_size = len(word_index)
-    embedding_matrix = np.zeros((vocab_size, embedding_dim))
-
-    with open(filepath, encoding='utf-8') as f:
-        for line in f:
-            word, *vector = line.split()
-            if word in word_index:
-                idx = word_index[word]
-                embedding_matrix[idx] = np.array(vector, dtype=np.float32)[:embedding_dim]
-    return embedding_matrix
-
-
-#让每条文本的长度相同，用0填充
-def seq_padding(X, padding=0):
-    L = [len(x) for x in X]
-    ML = max(L)
-    return np.array([
-        np.concatenate([x, [padding] * (ML - len(x))]) if len(x) < ML else x for x in X
-    ])
- 
-#data_generator只是一种为了节约内存的数据方式
-class data_generator:
-    def __init__(self, data, seq_length, batch_size, tokenizer, shuffle=True):
-        self.data = data
-        self.seq_length = seq_length
-        self.batch_size = batch_size
-        self.tokenizer = tokenizer
-        self.shuffle = shuffle
-        self.steps = len(self.data) // self.batch_size
-        if len(self.data) % self.batch_size != 0:
-            self.steps += 1
- 
-    def __len__(self):
-        return self.steps
- 
-    def __iter__(self):
-        while True:
-            idxs = list(range(len(self.data)))
- 
-            if self.shuffle:
-                np.random.shuffle(idxs)
- 
-            X1, X2, Y = [], [], []
-            for i in idxs:
-                d = self.data[i]
-                text = d[0][:self.seq_length]
-                x1, x2 = self.tokenizer.encode(first=text)
-                y = d[1]
-                X1.append(x1)
-                X2.append(x2)
-                Y.append([y])
-                if len(X1) == self.batch_size or i == idxs[-1]:
-                    X1 = seq_padding(X1)
-                    X2 = seq_padding(X2)
-                    Y = seq_padding(Y)
-                    yield [X1, X2], Y[:, 0, :]
-                    [X1, X2, Y] = [], [], []
-    

@@ -3,17 +3,17 @@
 贝叶斯新闻文本分类
 """
 
-from data_utils import TextData
-from sklearn.externals import joblib
+from ..data.data_utils import LoadData
+import joblib
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report
 
 # 读入训练数据
-td = TextData()
+td = LoadData()
 (x_data, y_data, z_data), (x_labels, y_labels, z_labels) = td.load_data()
 
-vec = CountVectorizer(analyzer='word', max_features=5000,  lowercase = False) # 参数analyzer='word'将剔除单个字？
+vec = CountVectorizer(analyzer='word', max_features=5000,  lowercase = False)  # 参数analyzer='word'将剔除单个字？
 clf = MultinomialNB()
 clf.fit(vec.fit_transform(x_data).toarray(), x_labels)
 
