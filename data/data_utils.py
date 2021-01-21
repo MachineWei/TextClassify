@@ -2,8 +2,6 @@
 
 import re
 import jieba
-import random
-import numpy as np
 from collections import Counter
 
 
@@ -15,124 +13,131 @@ class DataPath:
     train_dir = './data/segment_data/train.txt'
     test_dir = './data/segment_data/test.txt'
     val_dir = './data/segment_data/val.txt'
-    vocab_dir = './ckpt/vocab.txt'
-    stop_words = './ckpt/stop_words.txt'
+    vocab_dir = './ckpts/vocab.txt'
+    target_dir = './ckpts/target.txt'
+    stop_words = './ckpts/stop_words.txt'
 
 
 class LoadData:
     
     re_han = re.compile("([\u4E00-\u9FD5]+)")
     
-    def __init__(self, cut=False, sampling_rate=1):
+    def __init__(self, features='word'):
         """
-        :param cut: 是否需要进行分词（等于True时sampling_rate失效）
-        :param sampling_rate: sampling_rate: 只选取部分数据进行训练、测试、验证（数据量较大时）
+        features: word or char, 词向量或字向量
         """
-        self.cut = cut
-        self.sampling_rate = sampling_rate
+        self.features = features
         self.stop_words = self.open_file(DataPath.stop_words).read().strip().split('\n')
-        if self.cut:
-            self.local_data()
-        self.word2id, self.cat2id = self.build_vocab(DataPath.train_dir, DataPath.vocab_dir)
+        # self.to_local()
+        self.word2id, self.cat2id = self.build_vocab(DataPath.train_dir, DataPath.vocab_dir, DataPath.target_dir)
     
     def open_file(self, file, mode='r'):
         return open(file, mode, encoding='utf-8', errors='ignore')
 
     def cut_words(self, sentence : str) -> list:
-        """载入分词工具"""
-        return jieba.lcut(sentence)
+        if self.features == 'word':
+            return jieba.lcut(sentence)
+        else:
+            return list(sentence)
 
     def remove_stopwords(self, words):
-        """删除停用词"""
+        """
+        删除停用词
+        """
         return [word for word in words if word not in self.stop_words]
 
-    def text_preprogress(self, content):
-        """文本预处理"""
+    def text_progress(self, content):
+        """
+        文本预处理：分词、去停用词
+        """
         sentences = self.re_han.findall(content)
         ch_words = [' '.join(self.remove_stopwords(self.cut_words(sentence))) for sentence in sentences]
         return ' '.join(ch_words)
 
-    def to_local(self, input_file, out_file, input_separator='\t'):
-        """文本预处理，并写入本地"""
+    def __to_local(self, input_file, out_file):
+        """
+        经文本预处理结果写入本地
+        """
         with self.open_file(input_file) as in_f, self.open_file(out_file,'w') as out_f:
             for line in in_f:
-                if random.random() <= self.sampling_rate:
-                    label, content = line.strip().split(input_separator)
-                    if content:
-                        words = self.text_preprogress(content)
-                        out_f.write(label + '\t' + words+'\n')
+                label, content = line.strip().split('\t')
+                if content:
+                    words = self.text_progress(content)
+                    out_f.write(label + '\t' + words+'\n')
 
-    def read_file(self, input_file, input_separator='\t'):
-        """读取处理后的本地数据"""
+    def to_local(self):
+        raw_file = [DataPath.raw_train, DataPath.raw_test, DataPath.raw_val]
+        progressed_file = [DataPath.train_dir, DataPath.test_dir, DataPath.val_dir]
+        for input_file, out_file in zip(raw_file,progressed_file):
+            self.__to_local(input_file, out_file)
+
+    def read_file(self, input_file):
+        """
+        读取处理后的本地数据
+        """
         contents, labels = [], []
         with self.open_file(input_file) as in_f:
-            for line in in_f:
+            for i, line in enumerate(in_f):
                 try:
-                    label, content = line.strip().split(input_separator)
+                    label, content = line.strip().split('\t')
                     if content:
                         contents.append(content)
                         labels.append(label)
                 except:
+                    print("第%d行发现错误" % i)
                     pass
         return contents, labels
 
-    def build_vocab(self, train_segment_dir, vocab_dir, vocab_size=5000):
-        """根据训练集构建词汇表并存储"""
+    def build_vocab(self, train_segment_dir, vocab_dir, target_dir, vocab_size=5000):
+        """
+        根据训练集构建词汇表并存储
+        """
         contents, labels = self.read_file(train_segment_dir)
         labels = sorted(list(set(labels)))
         all_data = []
         for content in contents:
-            all_data.extend([c.strip() for c in content.split(' ') if c.strip()!=''])
-    
+            all_data.extend([c.strip() for c in content.split(' ') if c.strip() != ''])
+
         counter = Counter(all_data)
-        count_pairs = counter.most_common(vocab_size - 1)
+        count_pairs = counter.most_common(vocab_size - 2)
         words, s = list(zip(*count_pairs))
-        # 添加一个 <PAD> 来将所有文本pad为同一长度
-        words = ['<PAD>'] + list(words)
+
+        words = ['<PAD>', '<UNK>'] + list(words)         # pad映射到0，unk映射到1
         self.open_file(vocab_dir, mode='w').write('\n'.join(words) + '\n')
-        return dict(zip(words, range(len(words)))), dict(zip(labels, range(len(set(labels)))))
-
-    def batch_iter(self, x, y, batch_size=64):
-        """生成批次数据"""
-        data_len = len(x)
-        num_batch = int((data_len - 1) / batch_size) + 1
-    
-        indices = np.random.permutation(np.arange(data_len))
-        x_shuffle = x[indices]
-        y_shuffle = y[indices]
-    
-        for i in range(num_batch):
-            start_id = i * batch_size
-            end_id = min((i + 1) * batch_size, data_len)
-            yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
-
-    def local_data(self):
-        """训练集、测试集、验证集均分词并写入本地"""
-        print('将分词结果写入本地ing')
-        self.to_local(DataPath.raw_train, DataPath.train_dir)
-        self.to_local(DataPath.raw_test, DataPath.test_dir)
-        self.to_local(DataPath.raw_val, DataPath.val_dir)
-        print('Done！')
-
-    def load_data(self):
-        """读取文件（已分词）"""
-        print('读取已分词文本ing')
-        train_data, train_labels=self.read_file(DataPath.train_dir)
-        test_data, test_labels=self.read_file(DataPath.test_dir)
-        val_data, val_labels=self.read_file(DataPath.val_dir)
-        return (train_data, test_data, val_data), (train_labels, test_labels, val_labels)
+        self.open_file(target_dir, mode='w').write('\n'.join(labels) + '\n')
+        return dict(zip(words, range(len(words)))), dict(zip(labels, range(len(labels))))
 
     def to_id(self, _data, _labels):
-        _data = [[self.word2id.get(word, 0) for word in sen.split(' ')] for sen in _data] 
+        """
+        转换为id表示
+        """
+        _data = [[self.word2id.get(word, self.word2id.get('<UNK>')) for word in sen.split(' ')] for sen in _data]
         _labels = [self.cat2id.get(label) for label in _labels]
         return _data, _labels
 
-    def load_idata(self):
-        """将（已分词）文件转换为id表示"""
-        (train_data, test_data, val_data), (train_labels, test_labels, val_labels) = self.load_data()
-        print('载入id数据ing')
-        x_data, x_labels = self.to_id(train_data, train_labels)
-        y_data, y_labels = self.to_id(test_data, test_labels)
-        z_data, z_labels = self.to_id(val_data, val_labels)
-        return (x_data, y_data, z_data), (x_labels, y_labels, z_labels)
+    def pad_sequences(self, _data_id, sequence_length):
+        for i, d in enumerate(_data_id):
+            if len(d) < sequence_length:
+                _data_id[i] = d + [0] * (sequence_length - len(d))
+            else:
+                _data_id[i] = d[:sequence_length]
+        return _data_id
+
+    def load_data(self, name='train', sequence_length=100):
+        if name=='train':
+            x_data, x_labels = self.read_file(DataPath.train_dir)
+            x_data, x_labels = self.to_id(x_data, x_labels)
+            x_data = self.pad_sequences(x_data, sequence_length)
+            return x_data, x_labels
+        elif name=='val':
+            z_data, z_labels = self.read_file(DataPath.val_dir)
+            z_data, z_labels = self.to_id(z_data, z_labels)
+            z_data = self.pad_sequences(z_data, sequence_length)            
+            return z_data, z_labels        
+        else:
+            y_data, y_labels = self.read_file(DataPath.test_dir)
+            y_data, y_labels = self.to_id(y_data, y_labels)
+            y_data = self.pad_sequences(y_data, sequence_length)               
+            return y_data, y_labels
+
 
