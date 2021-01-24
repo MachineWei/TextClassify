@@ -60,14 +60,15 @@ class Classify:
         """
         传入一个句子，测试单个类别
         """
-        content_id = [self.sentence_cut(content)]
-        start_time = time.time()
-        content_id = torch.LongTensor(content_id)
-        one_batch_input = content_id.to(self.device)
-        outputs = self.model(one_batch_input)
-        max_value, max_index = torch.max(outputs, axis=1)
-        predict = max_index.cpu().numpy()
-        print(time.time()-start_time)
+        with torch.no_grad():
+            content_id = [self.sentence_cut(content)]
+            start_time = time.time()
+            content_id = torch.LongTensor(content_id)
+            one_batch_input = content_id.to(self.device)
+            outputs = self.model(one_batch_input)
+            max_value, max_index = torch.max(outputs, axis=1)
+            predict = max_index.cpu().numpy()
+            print(time.time()-start_time)
         return self.target[predict[0]]
 
 
