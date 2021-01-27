@@ -26,16 +26,13 @@ class Platform:
         self.load_data = LoadData()
         self.device = device
         self.model_config = model_config
-        self.__device()
+        self._device()
         self.model = model(self.model_config)
         self.model.to(self.device)
         self.writer = SummaryWriter("runs/model")
 
-    def __device(self):
-        if torch.cuda.is_available() and self.device == 'gpu':
-            self.device = torch.device('cuda')
-        else:
-            self.device = 'cpu'
+    def _device(self):
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def train(self):
         # 载入数据
